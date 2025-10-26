@@ -1,0 +1,199 @@
+{
+	"info": {
+		"_postman_id": "b4eb25df-ff78-46ac-bf48-99349c41ceaa",
+		"name": "AREP-Taller7 API Tests",
+		"description": "Colección para probar los endpoints reales de la API del Taller 7",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39295724"
+	},
+	"item": [
+		{
+			"name": "User Controller",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\":\"jaider25\",\r\n    \"email\":\"ditovargas3225@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta/users",
+							"protocol": "https",
+							"host": [
+								"o8dquugs9e",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"beta",
+								"users"
+							]
+						},
+						"description": "Crea un nuevo usuario"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta/users/68fe990eaa5c72522bb39fa6",
+							"protocol": "https",
+							"host": [
+								"o8dquugs9e",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"beta",
+								"users",
+								"68fe990eaa5c72522bb39fa6"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Post Controller",
+			"item": [
+				{
+					"name": "Create Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"content\":\"Como estas\",\r\n    \"userId\":\"68fe990eaa5c72522bb39fa6\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta/posts",
+							"protocol": "https",
+							"host": [
+								"o8dquugs9e",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"beta",
+								"posts"
+							]
+						},
+						"description": "Crea un nuevo post en un stream específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Stream Posts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta/posts",
+							"protocol": "https",
+							"host": [
+								"o8dquugs9e",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"beta",
+								"posts"
+							]
+						},
+						"description": "Obtiene todos los posts de un stream específico (por defecto 'global')"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Streams Controller",
+			"item": [
+				{
+					"name": "Init global stream",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta/streams/global/init",
+							"protocol": "https",
+							"host": [
+								"o8dquugs9e",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"beta",
+								"streams",
+								"global",
+								"init"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get global stream",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta/streams/global",
+							"protocol": "https",
+							"host": [
+								"o8dquugs9e",
+								"execute-api",
+								"us-east-1",
+								"amazonaws",
+								"com"
+							],
+							"path": [
+								"beta",
+								"streams",
+								"global"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
