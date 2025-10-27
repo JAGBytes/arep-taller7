@@ -7,6 +7,8 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.example.db.MongoProvider;
@@ -20,7 +22,15 @@ public class GetUserHandler implements RequestHandler<APIGatewayProxyRequestEven
         String db = System.getenv().getOrDefault("DB_NAME", "arep");
         String col = System.getenv().getOrDefault("COLLECTION_NAME", "users");
         MongoClient client = MongoProvider.client();
-        return client.getDatabase(db).getCollection(col);
+        MongoCollection<Document> c = client.getDatabase(db).getCollection(col);
+        ensureIndexes(c);
+        return c;
+    }
+
+    private void ensureIndexes(MongoCollection<Document> c){
+        try {
+            c.createIndex(Indexes.ascending("sub"), new IndexOptions().unique(true));
+        } catch (Exception ignore) {}
     }
 
     @Override
@@ -29,9 +39,11 @@ public class GetUserHandler implements RequestHandler<APIGatewayProxyRequestEven
             String id = event.getPathParameters() != null ? event.getPathParameters().get("id") : null;
             if (id == null || id.isBlank()) return ApiResponses.bad("Path param 'id' is required");
 
-            Document found = coll().find(eq("_id", new ObjectId(id))).first();
-            if (found == null) return ApiResponses.ok(new Document("message", "User not found"));
-
+            Document found = coll().find(eq("sub", id)).first();
+            if (found == null) {
+                found = ObjectId.isValid(id) ? coll().find(eq("_id", new ObjectId(id))).first() : null;
+                if(found == null) return ApiResponses.notFound("User not found");
+            }
             // Convertir _id -> id
             String hex = ((ObjectId) found.get("_id")).toHexString();
             found.remove("_id");
