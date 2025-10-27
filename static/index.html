@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroPost - Red Social</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles/style.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-full">
+    <!-- Top Navigation Bar -->
+    <nav class="gradient-bg shadow-lg sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fab fa-twitter text-white text-2xl"></i>
+                    <h1 class="text-xl font-bold text-white">MicroTwitter</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 text-white">
+                        <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-sm"></i>
+                        </div>
+                        <span id="currentUser" class="font-medium"></span>
+                    </div>
+                    <button id="logoutBtn" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-sign-out-alt text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-2xl mx-auto p-4 pt-6">
+        <!-- Main Content -->
+        <main>
+            <!-- Post Creation -->
+            <div class="glass-effect rounded-xl shadow-lg border border-white border-opacity-20 p-6 mb-6">
+                <div class="flex items-start space-x-3">
+                    <div class="w-12 h-12 gradient-bg rounded-full flex items-center justify-center shadow-md">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div class="flex-1">
+                        <textarea 
+                            id="postContent" 
+                            maxlength="140" 
+                            placeholder="¿Qué está pasando?"
+                            class="w-full p-4 text-xl border-none focus:outline-none resize-none bg-transparent placeholder-gray-500 h-24"
+                        ></textarea>
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-200">
+                            <div class="flex items-center space-x-4 text-blue-500">
+                                <i class="far fa-image hover:bg-blue-50 p-2 rounded-full cursor-pointer transition-colors"></i>
+                                <i class="fas fa-poll hover:bg-blue-50 p-2 rounded-full cursor-pointer transition-colors"></i>
+                                <i class="far fa-smile hover:bg-blue-50 p-2 rounded-full cursor-pointer transition-colors"></i>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center space-x-2">
+                                    <div id="progressCircle" class="w-8 h-8 relative">
+                                        <svg class="w-8 h-8 transform -rotate-90" viewBox="0 0 32 32">
+                                            <circle cx="16" cy="16" r="14" stroke="#e5e7eb" stroke-width="4" fill="none"/>
+                                            <circle id="progressBar" cx="16" cy="16" r="14" stroke="#3b82f6" stroke-width="4" fill="none" 
+                                                    stroke-dasharray="87.96" stroke-dashoffset="87.96" class="transition-all duration-300"/>
+                                        </svg>
+                                    </div>
+                                    <span id="charCount" class="text-sm text-gray-500 font-medium">140</span>
+                                </div>
+                                <button 
+                                    id="postButton" 
+                                    class="gradient-bg hover:opacity-90 text-white font-bold px-6 py-2 rounded-full transition-all disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md"
+                                    disabled
+                                >
+                                    <i class="fas fa-paper-plane mr-2"></i>Twittear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stream/Feed -->
+            <div class="glass-effect rounded-xl shadow-lg border border-white border-opacity-20">
+                <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+                    <h2 id="stream" class="text-xl font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-home mr-3 text-blue-500"></i>
+                        Inicio
+                    </h2>
+                    <p class="text-gray-500" id="stream-date"></p>
+                </div>
+                <div id="postsStream" class="divide-y divide-gray-200">
+                    <div class="text-center text-gray-400 py-12">
+                        <i class="fas fa-feather-alt text-4xl mb-4 text-gray-300"></i>
+                        <p class="text-lg">No hay tweets aún</p>
+                        <p class="text-sm">¡Sé el primero en compartir algo!</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="scripts/auth.js"></script>
+    <script type="module" src="scripts/main.js"></script>
+    <script type="module" src="scripts/logic.js"></script>
+    <script src="scripts/load.js"></script>
+</body>
+</html>
