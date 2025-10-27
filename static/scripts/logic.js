@@ -1,4 +1,7 @@
+import { signOutRedirect } from "./main.js";
+
 let currentUser = null;
+let userData = null;
 
 const API_BASE_URL =
   "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta/";
@@ -8,10 +11,14 @@ async function fetchProperties(api, method = "GET", body = null) {
     method,
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${currentUser.id_token}`,
     },
     ...(body && { body: JSON.stringify(body) }),
-    authorization: `Bearer ${currentUser.access_token}`,
   });
+  if (res.status === 401) {
+    console.log("NO AUTORIZADO");
+    await signOutRedirect();
+  }
   return res;
 }
 
@@ -59,25 +66,25 @@ postContent.addEventListener("input", () => {
 });
 
 // Crear post
-postButton.addEventListener("click", () => {
+postButton.addEventListener("click", async () => {
   if (!currentUser) return;
   const content = postContent.value.trim();
   if (content.length === 0 || content.length > 140) return;
 
   const post = {
     content: content,
-    userId: currentUser.profile.sub,
+    userId: userData.id,
   };
 
-  fetchProperties("posts/", "POST", post)
-    .then((res) => res.json())
-    .then((data) => {
-      console.log("Post creado:", data);
-      loadPostsByStream();
-    })
-    .catch((err) => {
-      console.error("Error al crear el post:", err);
-    });
+  const createdPost = await fetchProperties("posts", "POST", post);
+
+  if (createdPost.ok) {
+    const data = await createdPost.json();
+    console.log("Post creado:", data);
+    loadPostsByStream();
+  } else {
+    console.error("Error al crear el post:", createdPost);
+  }
 
   postContent.value = "";
   charCount.textContent = "140";
@@ -87,43 +94,41 @@ postButton.addEventListener("click", () => {
   postContent.focus();
 });
 
-function loadPostsByStream() {
-  fetchProperties("posts/", "GET")
-    .then((res) => res.json())
-    .then((data) => {
-      stream.posts = data;
-      stream.posts.forEach(async (post) => {
-        await fetchProperties(`users/${post.userId}`, "GET")
-          .then((res) => res.json())
-          .then((userData) => {
-            post.user = {
-              username: "@" + userData.username,
-              avatar: "fas fa-user",
-            };
-          });
-      });
-      renderStream();
-    })
-    .catch((err) => {
-      console.error("Error al obtener los posts:", err);
-    });
-}
-// Renderizar stream
-function renderStream() {
-  if (stream.posts.length === 0) {
-    postsStream.innerHTML = `
+async function loadPostsByStream() {
+  postsStream.innerHTML = "";
+  const resPosts = await fetchProperties("posts", "GET");
+  if (resPosts.ok) {
+    document.getElementById("loading").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    const data = await resPosts.json();
+    stream.posts = data;
+    if (stream.posts.length === 0) {
+      postsStream.innerHTML = `
                     <div class="text-center text-gray-400 py-12">
                         <i class="fas fa-feather-alt text-4xl mb-4 text-gray-300"></i>
-                        <p class="text-lg">No hay tweets aún</p>
-                        <p class="text-sm">¡Sé el primero en compartir algo!</p>
+                        <p class="text-lg">There are no tweets yet</p>
+                        <p class="text-sm">Be the first to share something!</p>
                     </div>
                 `;
-    return;
+      return;
+    }
+    stream.posts.forEach(async (post) => {
+      const resUser = await fetchProperties(`users/${post.userId}`, "GET");
+      if (resUser.ok) {
+        const userData = await resUser.json();
+        post.user = {
+          name: userData.username,
+          username: "@" + userData.username,
+          avatar: "fas fa-user",
+        };
+        postsStream.innerHTML += renderStream(post);
+      }
+    });
   }
-
-  postsStream.innerHTML = stream.posts
-    .map(
-      (post) => `
+}
+// Renderizar stream
+function renderStream(post) {
+  return `
                 <div class="hover:bg-gray-50 transition-colors p-4 cursor-pointer">
                     <div class="flex items-start space-x-3">
                         <div class="w-12 h-12 gradient-bg rounded-full flex items-center justify-center shadow-md flex-shrink-0">
@@ -132,7 +137,7 @@ function renderStream() {
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center space-x-2 mb-1">
                                 <span class="font-bold text-gray-900">${
-                                  post.user.username
+                                  post.user.name
                                 }</span>
                                 <span class="text-gray-500 text-sm">${
                                   post.user.username
@@ -184,9 +189,7 @@ function renderStream() {
                         </div>
                     </div>
                 </div>
-            `
-    )
-    .join("");
+            `;
 }
 
 // Formatear tiempo
@@ -214,19 +217,44 @@ postContent.addEventListener("keydown", (e) => {
   }
 });
 
-export function init(user) {
+export async function init(user) {
   currentUser = user;
-  console.log("Current User:", currentUser);
-  fetchProperties("streams/global", "GET")
-    .then((res) => res.json())
-    .then((data) => {
-      document.getElementById("stream").textContent = data.name;
-      document.getElementById(
-        "stream-date"
-      ).textContent = `Actualizado el ${formatTime(new Date(data.updatedAt))}`;
-      loadPostsByStream();
-    })
-    .catch((err) => {
-      console.error("Error al obtener los posts:", err);
-    });
+  let header = document.getElementById("currentUser");
+  const existUser = await fetchProperties(
+    `users/${currentUser.profile.sub}`,
+    "GET"
+  );
+  if (existUser.ok) {
+    const data = await existUser.json();
+    header.textContent = data.username;
+    userData = data;
+    loadData();
+    return;
+  }
+  if (existUser.status === 404) {
+    console.log("Creando nuevo usuario...", currentUser.profile);
+    const newUser = {
+      sub: currentUser.profile.sub,
+      username: currentUser.profile["cognito:username"],
+      email: currentUser.profile.email,
+    };
+    const createdUser = await fetchProperties(`users`, "POST", newUser);
+    if (createdUser.ok) {
+      const data = await createdUser.json();
+      header.textContent = data.username;
+      userData = data;
+      loadData();
+    }
+  }
+}
+async function loadData() {
+  const streamRes = await fetchProperties("streams/global", "GET");
+  if (streamRes.ok) {
+    const data = await streamRes.json();
+    document.getElementById("stream").textContent = "Stream: " + data.name;
+    document.getElementById(
+      "stream-date"
+    ).textContent = `Updated on ${new Date(data.createdAt).toLocaleDateString("es-CO", {timeZone: "America/Bogota",day: "2-digit",month: "2-digit",year: "numeric",})}`;
+    loadPostsByStream();
+  }
 }

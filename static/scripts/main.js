@@ -6,15 +6,13 @@ async function setUI(user) {
     window.location.href = "/pages/home.html";
     return;
   }
-  document.getElementById("currentUser").textContent =
-    user.profile["cognito:username"] || "Usuario";
-  init(user);
+  await init(user);
 }
 
 // Salir -> redirigir al endpoint de logout de Cognito
 export async function signOutRedirect() {
   const clientId = "7mndnr2bt6r298bvog1c0snfml";
-  const logoutUri = "http://localhost:3000/pages/home.html";
+  const logoutUri = "https://fronttaller7.duckdns.org/pages/home.html";
   const cognitoDomain =
     "https://us-east-1g6uraa1ik.auth.us-east-1.amazoncognito.com";
   // construye la URL de logout de Cognito
