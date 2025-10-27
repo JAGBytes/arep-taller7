@@ -24,6 +24,16 @@ public class CreatePostHandler implements RequestHandler<APIGatewayProxyRequestE
 
     @Override public APIGatewayProxyResponseEvent handleRequest(APIGatewayProxyRequestEvent event, Context ctx) {
         try {
+            String authHdr = null;
+            if (event.getHeaders() != null) {
+                var h = event.getHeaders();
+                authHdr = h.getOrDefault("Authorization",
+                        h.getOrDefault("authorization",
+                                h.getOrDefault("AUTHORIZATION", null)));
+            }
+            if (authHdr == null || authHdr.isBlank()) {
+                return ApiResponses.bad("Missing Authorization header");
+            }
             String content = null, stream = "global"; String userId = null;
 
             if ((content==null || userId==null) && event.getBody()!=null && !event.getBody().isBlank()) {
@@ -39,7 +49,8 @@ public class CreatePostHandler implements RequestHandler<APIGatewayProxyRequestE
             var baseUrl = System.getenv().getOrDefault("USERS_BASE_URL", "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta");
             var req = java.net.http.HttpRequest.newBuilder(
                             java.net.URI.create(baseUrl + "/users/" + userId))
-                    .timeout(java.time.Duration.ofSeconds(4))
+                    .timeout(java.time.Duration.ofSeconds(6))
+                    .header("Authorization", authHdr)
                     .GET()
                     .build();
             var res = java.net.http.HttpClient.newHttpClient()
@@ -52,7 +63,8 @@ public class CreatePostHandler implements RequestHandler<APIGatewayProxyRequestE
                     "https://o8dquugs9e.execute-api.us-east-1.amazonaws.com/beta");
             var streamReq = java.net.http.HttpRequest.newBuilder()
                     .uri(java.net.URI.create(streamBase + "/streams/global"))
-                    .timeout(java.time.Duration.ofSeconds(4))
+                    .timeout(java.time.Duration.ofSeconds(6))
+                    .header("Authorization", authHdr)
                     .GET()
                     .build();
             var client = HttpClient.newHttpClient();
